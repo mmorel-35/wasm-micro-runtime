@@ -230,6 +230,9 @@ cc_library(
 )
 
 # Interpreter library
+# Note: This uses the fast interpreter (wasm_interp_fast.c) by default.
+# To use the classic interpreter, replace wasm_interp_fast.c with wasm_interp_classic.c
+# and remove the WASM_ENABLE_FAST_INTERP flag from vmlib's copts.
 cc_library(
     name = "iwasm_interp",
     srcs = [
