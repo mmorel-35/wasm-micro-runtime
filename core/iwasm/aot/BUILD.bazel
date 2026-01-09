@@ -41,5 +41,6 @@ cc_library(
     ],
     deps = [
         "//core/iwasm/common",
+        "//core/iwasm/interpreter:interpreter_headers",  # Required for ../interpreter/*.h includes
     ],
 )

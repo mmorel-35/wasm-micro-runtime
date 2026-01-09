@@ -44,5 +44,6 @@ cc_library(
         "//core/shared/mem-alloc",
         "//core/shared/platform",
         "//:iwasm_api",  # Required for ../include/wasm_export.h
+        "//core/iwasm/interpreter:interpreter_headers",  # Required for ../interpreter/*.h includes
     ],
 )

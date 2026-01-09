@@ -13,6 +13,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+# Interpreter headers (for cross-dependencies with common)
+cc_library(
+    name = "interpreter_headers",
+    hdrs = glob(["*.h"]),
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "interpreter",
     srcs = [

@@ -26,5 +26,6 @@ cc_library(
     deps = [
         "//core/shared/utils",  # Required for bh_*.h headers
         "//:iwasm_api",  # Required for wasm_export.h
+        "//core/iwasm/interpreter:interpreter_headers",  # Required for ../interpreter/*.h includes
     ],
 )
