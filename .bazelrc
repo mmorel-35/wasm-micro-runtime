@@ -1,0 +1,34 @@
+# Bazel configuration for WAMR project
+
+# Use C99 standard for all C code
+build --cxxopt=-std=c++17
+build --conlyopt=-std=gnu99
+
+# Enable platform-specific features
+build --enable_platform_specific_config
+
+# Linux-specific settings
+build:linux --copt=-fPIC
+
+# macOS-specific settings  
+build:macos --copt=-fPIC
+
+# Windows-specific settings
+build:windows --copt=/std:c11
+
+# Common optimization flags
+build --copt=-ffunction-sections
+build --copt=-fdata-sections
+
+# Security flags
+build --copt=-Wall
+build --copt=-Wextra
+build --copt=-Wformat
+build --copt=-Wformat-security
+
+# Use a static value for PATH for hermetic builds
+build --incompatible_strict_action_env
+
+# Output configuration
+build --show_timestamps
+build --color=yes

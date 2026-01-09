@@ -1,0 +1,20 @@
+"""
+MODULE.bazel - Bazel module definition for WebAssembly Micro Runtime (WAMR)
+
+This file defines the WAMR module and its dependencies using Bazel's modern
+module system (bzlmod). It provides build support for the WAMR runtime library
+without requiring foreign_cc rules.
+"""
+
+module(
+    name = "wamr",
+    version = "2.2.0",
+    compatibility_level = 1,
+)
+
+# Core Bazel rules for C/C++ compilation
+bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "rules_cc", version = "0.0.9")
+
+# Optional: Bazel skylib for utility functions
+bazel_dep(name = "bazel_skylib", version = "1.7.1")

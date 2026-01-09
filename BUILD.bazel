@@ -1,0 +1,371 @@
+"""
+BUILD.bazel - Bazel build configuration for WebAssembly Micro Runtime (WAMR)
+
+This file defines build targets for the WAMR runtime library (vmlib/libiwasm)
+with support for multiple platforms and architectures.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Platform configurations
+config_setting(
+    name = "linux",
+    constraint_values = ["@platforms//os:linux"],
+)
+
+config_setting(
+    name = "macos",
+    constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+# Architecture configurations
+config_setting(
+    name = "x86_64",
+    constraint_values = ["@platforms//cpu:x86_64"],
+)
+
+config_setting(
+    name = "aarch64",
+    constraint_values = ["@platforms//cpu:aarch64"],
+)
+
+config_setting(
+    name = "arm",
+    constraint_values = ["@platforms//cpu:arm"],
+)
+
+config_setting(
+    name = "riscv64",
+    constraint_values = ["@platforms//cpu:riscv64"],
+)
+
+# Combined platform-architecture settings for specific assembly files
+config_setting(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "macos_x86_64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+config_setting(
+    name = "macos_aarch64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+config_setting(
+    name = "linux_aarch64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+# Memory allocator library
+cc_library(
+    name = "mem_alloc",
+    srcs = glob([
+        "core/shared/mem-alloc/*.c",
+        "core/shared/mem-alloc/ems/*.c",
+        "core/shared/mem-alloc/tlsf/*.c",
+    ]),
+    hdrs = glob([
+        "core/shared/mem-alloc/*.h",
+        "core/shared/mem-alloc/ems/*.h",
+        "core/shared/mem-alloc/tlsf/*.h",
+    ]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DBH_MALLOC=wasm_runtime_malloc",
+        "-DBH_FREE=wasm_runtime_free",
+    ],
+    includes = [
+        "core/shared/mem-alloc",
+    ],
+)
+
+# Shared utilities library
+cc_library(
+    name = "shared_utils",
+    srcs = glob(["core/shared/utils/*.c"]),
+    hdrs = glob(["core/shared/utils/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+    ],
+    includes = [
+        "core/shared/utils",
+    ],
+)
+
+# Platform-specific library
+cc_library(
+    name = "platform",
+    srcs = select({
+        ":linux": glob([
+            "core/shared/platform/linux/*.c",
+            "core/shared/platform/common/posix/*.c",
+        ]),
+        ":macos": glob([
+            "core/shared/platform/darwin/*.c",
+            "core/shared/platform/common/posix/*.c",
+        ]),
+        ":windows": glob([
+            "core/shared/platform/windows/*.c",
+        ]),
+        "//conditions:default": glob([
+            "core/shared/platform/linux/*.c",
+            "core/shared/platform/common/posix/*.c",
+        ]),
+    }),
+    hdrs = glob([
+        "core/shared/platform/include/*.h",
+        "core/shared/platform/common/**/*.h",
+    ]) + select({
+        ":linux": glob(["core/shared/platform/linux/*.h"]),
+        ":macos": glob(["core/shared/platform/darwin/*.h"]),
+        ":windows": glob(["core/shared/platform/windows/*.h"]),
+        "//conditions:default": [],
+    }),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+    ] + select({
+        ":linux": ["-DBH_PLATFORM_LINUX"],
+        ":macos": ["-DBH_PLATFORM_DARWIN"],
+        ":windows": ["-DBH_PLATFORM_WINDOWS"],
+        "//conditions:default": ["-DBH_PLATFORM_LINUX"],
+    }),
+    includes = [
+        "core/shared/platform/include",
+    ] + select({
+        ":linux": [
+            "core/shared/platform/linux",
+            "core/shared/platform/common/posix",
+        ],
+        ":macos": [
+            "core/shared/platform/darwin",
+            "core/shared/platform/common/posix",
+        ],
+        ":windows": ["core/shared/platform/windows"],
+        "//conditions:default": [
+            "core/shared/platform/linux",
+            "core/shared/platform/common/posix",
+        ],
+    }),
+)
+
+# IWASM common library (architecture-specific native invocation)
+cc_library(
+    name = "iwasm_common",
+    srcs = glob(
+        ["core/iwasm/common/*.c"],
+        exclude = ["core/iwasm/common/wasm_application.c"],
+    ) + select({
+        ":linux_x86_64": ["core/iwasm/common/arch/invokeNative_em64.s"],
+        ":macos_x86_64": ["core/iwasm/common/arch/invokeNative_em64.s"],
+        ":linux_aarch64": ["core/iwasm/common/arch/invokeNative_aarch64.s"],
+        ":macos_aarch64": ["core/iwasm/common/arch/invokeNative_aarch64.s"],
+        ":x86_64": ["core/iwasm/common/arch/invokeNative_em64.s"],
+        ":aarch64": ["core/iwasm/common/arch/invokeNative_aarch64.s"],
+        ":arm": ["core/iwasm/common/arch/invokeNative_arm.s"],
+        ":riscv64": ["core/iwasm/common/arch/invokeNative_riscv.S"],
+        "//conditions:default": ["core/iwasm/common/arch/invokeNative_general.c"],
+    }),
+    hdrs = glob(["core/iwasm/common/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DBH_MALLOC=wasm_runtime_malloc",
+        "-DBH_FREE=wasm_runtime_free",
+    ],
+    includes = [
+        "core/iwasm/common",
+    ],
+    deps = [
+        ":mem_alloc",
+        ":platform",
+    ],
+)
+
+# Interpreter library
+cc_library(
+    name = "iwasm_interp",
+    srcs = [
+        "core/iwasm/interpreter/wasm_loader.c",
+        "core/iwasm/interpreter/wasm_runtime.c",
+        "core/iwasm/interpreter/wasm_interp_fast.c",
+    ],
+    hdrs = glob(["core/iwasm/interpreter/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_INTERP=1",
+    ],
+    includes = [
+        "core/iwasm/interpreter",
+    ],
+    deps = [
+        ":iwasm_common",
+    ],
+)
+
+# AOT runtime library
+cc_library(
+    name = "iwasm_aot",
+    srcs = [
+        "core/iwasm/aot/aot_intrinsic.c",
+        "core/iwasm/aot/aot_loader.c",
+        "core/iwasm/aot/aot_runtime.c",
+    ] + select({
+        ":x86_64": ["core/iwasm/aot/arch/aot_reloc_x86_64.c"],
+        ":aarch64": ["core/iwasm/aot/arch/aot_reloc_aarch64.c"],
+        ":arm": ["core/iwasm/aot/arch/aot_reloc_arm.c"],
+        ":riscv64": ["core/iwasm/aot/arch/aot_reloc_riscv.c"],
+        "//conditions:default": ["core/iwasm/aot/arch/aot_reloc_x86_64.c"],
+    }),
+    hdrs = glob(["core/iwasm/aot/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_AOT=1",
+    ],
+    includes = [
+        "core/iwasm/aot",
+    ],
+    deps = [
+        ":iwasm_common",
+    ],
+)
+
+# LIBC builtin library
+cc_library(
+    name = "libc_builtin",
+    srcs = glob(["core/iwasm/libraries/libc-builtin/*.c"]),
+    hdrs = glob(["core/iwasm/libraries/libc-builtin/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_LIBC_BUILTIN=1",
+    ],
+    includes = [
+        "core/iwasm/libraries/libc-builtin",
+    ],
+)
+
+# LIBC WASI library
+cc_library(
+    name = "libc_wasi",
+    srcs = glob(["core/iwasm/libraries/libc-wasi/**/*.c"]),
+    hdrs = glob(["core/iwasm/libraries/libc-wasi/**/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_LIBC_WASI=1",
+    ],
+    includes = [
+        "core/iwasm/libraries/libc-wasi",
+        "core/iwasm/libraries/libc-wasi/sandboxed-system-primitives/include",
+        "core/iwasm/libraries/libc-wasi/sandboxed-system-primitives/src",
+    ],
+)
+
+# Main WAMR runtime library (vmlib/libiwasm)
+cc_library(
+    name = "vmlib",
+    srcs = [],
+    hdrs = glob([
+        "core/iwasm/include/*.h",
+    ]),
+    copts = [
+        "-std=gnu99",
+        "-Wall",
+        "-Wextra",
+        "-Wformat",
+        "-Wformat-security",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_INTERP=1",
+        "-DWASM_ENABLE_AOT=1",
+        "-DWASM_ENABLE_LIBC_BUILTIN=1",
+        "-DWASM_ENABLE_LIBC_WASI=1",
+        "-DWASM_ENABLE_FAST_INTERP=1",
+        "-DWASM_ENABLE_SIMD=1",
+        "-DWASM_ENABLE_REF_TYPES=1",
+    ],
+    includes = [
+        "core/iwasm/include",
+    ],
+    linkopts = select({
+        ":linux": [
+            "-lm",
+            "-ldl",
+            "-lpthread",
+        ],
+        ":macos": [
+            "-lm",
+            "-lpthread",
+        ],
+        ":windows": [
+            "-lws2_32",
+            "-lntdll",
+        ],
+        "//conditions:default": [
+            "-lm",
+            "-ldl",
+            "-lpthread",
+        ],
+    }),
+    deps = [
+        ":iwasm_aot",
+        ":iwasm_common",
+        ":iwasm_interp",
+        ":libc_builtin",
+        ":libc_wasi",
+        ":mem_alloc",
+        ":platform",
+        ":shared_utils",
+    ],
+)
+
+# Alias for compatibility
+alias(
+    name = "iwasm",
+    actual = ":vmlib",
+)

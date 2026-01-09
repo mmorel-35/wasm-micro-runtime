@@ -40,3 +40,7 @@ samples/workload/include/**
 !samples/workload/include/.gitkeep
 
 # core/iwasm/libraries/wasi-threads
+
+# Bazel build outputs
+bazel-*
+.bazel
