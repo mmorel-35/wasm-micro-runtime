@@ -17,7 +17,7 @@ bazel build //:vmlib
 ```
 
 This will build the complete WAMR runtime library including:
-- Interpreter (fast and classic)
+- Fast interpreter
 - AOT runtime
 - WASI libc support
 - Built-in libc support

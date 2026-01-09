@@ -199,10 +199,6 @@ cc_library(
         ["core/iwasm/common/*.c"],
         exclude = ["core/iwasm/common/wasm_application.c"],
     ) + select({
-        ":linux_x86_64": ["core/iwasm/common/arch/invokeNative_em64.s"],
-        ":macos_x86_64": ["core/iwasm/common/arch/invokeNative_em64.s"],
-        ":linux_aarch64": ["core/iwasm/common/arch/invokeNative_aarch64.s"],
-        ":macos_aarch64": ["core/iwasm/common/arch/invokeNative_aarch64.s"],
         ":x86_64": ["core/iwasm/common/arch/invokeNative_em64.s"],
         ":aarch64": ["core/iwasm/common/arch/invokeNative_aarch64.s"],
         ":arm": ["core/iwasm/common/arch/invokeNative_arm.s"],

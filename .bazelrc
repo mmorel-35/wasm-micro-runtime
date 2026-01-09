@@ -14,7 +14,7 @@ build:linux --copt=-fPIC
 build:macos --copt=-fPIC
 
 # Windows-specific settings
-build:windows --copt=/std:c11
+build:windows --conlyopt=/std:c11
 
 # Common optimization flags
 build --copt=-ffunction-sections
