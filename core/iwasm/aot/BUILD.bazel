@@ -35,7 +35,10 @@ cc_library(
         "@platforms//cpu:riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
         "//conditions:default": ["-DBUILD_TARGET_X86_64"],
     }),
-    includes = ["."],
+    includes = [
+        ".",
+        "..",  # For ../interpreter/wasm.h and ../common includes
+    ],
     deps = [
         "//core/iwasm/common",
     ],

@@ -31,5 +31,6 @@ cc_library(
     includes = ["."],
     deps = [
         "//core/iwasm/common",
+        "//core/shared/utils",  # Required for bh_*.h headers
     ],
 )

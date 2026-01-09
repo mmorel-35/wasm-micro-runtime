@@ -27,13 +27,8 @@ bazel_dep(name = "rules_cc", version = "0.2.4")
 # Optional: Bazel skylib for utility functions
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 
-# LLVM for JIT support - using git_override to get version 19.1.0
-# This matches the version used in proxy-wasm-cpp-host and has the LLVM
-# targets we need (Support, Core, OrcJIT, etc.)
-bazel_dep(name = "llvm-project", dev_dependency = True)
-
-git_override(
-    module_name = "llvm-project",
-    remote = "https://github.com/llvm/llvm-project.git",
-    commit = "llvmorg-19.1.0",
-)
+# LLVM for JIT support - using version 17.0.3.bcr.4 from Bazel Central Registry
+# BCR versions include the necessary overlays (MODULE.bazel, BUILD files) for bzlmod support
+# This provides the LLVM targets we need (Support, Core, OrcJIT, etc.)
+# Note: LLVM 19+ is not yet available in BCR. When it becomes available, update this version.
+bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4", dev_dependency = True)

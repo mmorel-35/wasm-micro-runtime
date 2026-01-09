@@ -19,5 +19,12 @@ cc_library(
         "-fvisibility=hidden",
         "-DWASM_ENABLE_LIBC_BUILTIN=1",
     ],
-    includes = ["."],
+    includes = [
+        ".",
+        "..",  # For ../interpreter/wasm.h includes
+    ],
+    deps = [
+        "//core/shared/utils",  # Required for bh_*.h headers
+        "//:iwasm_api",  # Required for wasm_export.h
+    ],
 )

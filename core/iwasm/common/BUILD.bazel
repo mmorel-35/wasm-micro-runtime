@@ -36,9 +36,13 @@ cc_library(
         "@platforms//cpu:riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
         "//conditions:default": ["-DBUILD_TARGET_X86_64"],
     }),
-    includes = ["."],
+    includes = [
+        ".",
+        "..",  # For ../interpreter/wasm.h includes from common directory
+    ],
     deps = [
         "//core/shared/mem-alloc",
         "//core/shared/platform",
+        "//:iwasm_api",  # Required for ../include/wasm_export.h
     ],
 )

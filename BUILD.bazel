@@ -9,6 +9,24 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+# Configuration header library
+# Provides config.h to all WAMR components
+cc_library(
+    name = "config",
+    hdrs = ["core/config.h"],
+    includes = ["core"],
+    visibility = ["//visibility:public"],
+)
+
+# IWASM API headers
+# Public API headers for WAMR runtime
+cc_library(
+    name = "iwasm_api",
+    hdrs = glob(["core/iwasm/include/*.h"]),
+    includes = ["core/iwasm/include"],
+    visibility = ["//visibility:public"],
+)
+
 # Main WAMR runtime library (vmlib/libiwasm)
 # Default configuration: Interpreter + AOT (no JIT)
 cc_library(
@@ -71,7 +89,7 @@ cc_library(
 )
 
 # WAMR runtime library with JIT support
-# Requires LLVM 19.1.0: automatically included via git_override in MODULE.bazel
+# Requires LLVM: automatically included from BCR in MODULE.bazel
 cc_library(
     name = "vmlib_jit",
     hdrs = glob(["core/iwasm/include/*.h"]),

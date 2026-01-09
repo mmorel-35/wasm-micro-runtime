@@ -24,4 +24,8 @@ cc_library(
         "sandboxed-system-primitives/include",
         "sandboxed-system-primitives/src",
     ],
+    deps = [
+        "//core/shared/utils",  # Required for bh_*.h headers
+        "//:iwasm_api",  # Required for wasm_export.h
+    ],
 )

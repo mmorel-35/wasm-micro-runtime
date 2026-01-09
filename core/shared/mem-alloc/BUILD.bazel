@@ -27,4 +27,7 @@ cc_library(
         "-DBH_FREE=wasm_runtime_free",
     ],
     includes = ["."],
+    deps = [
+        "//core/shared/utils",  # Required for bh_*.h headers
+    ],
 )
