@@ -17,6 +17,7 @@ cc_library(
         "@platforms//cpu:x86_64": ["arch/invokeNative_em64.s"],
         "@platforms//cpu:aarch64": ["arch/invokeNative_aarch64.s"],
         "@platforms//cpu:arm": ["arch/invokeNative_arm.s"],
+        # Note: .S extension (uppercase) indicates preprocessed assembly
         "@platforms//cpu:riscv64": ["arch/invokeNative_riscv.S"],
         "//conditions:default": ["arch/invokeNative_general.c"],
     }),

@@ -2,8 +2,11 @@
 BUILD.bazel - Interpreter library for WAMR
 
 This library provides the WebAssembly interpreter implementation.
-Note: This uses the fast interpreter (wasm_interp_fast.c) by default.
-To use the classic interpreter, replace wasm_interp_fast.c with wasm_interp_classic.c.
+
+Note: This uses the fast interpreter (wasm_interp_fast.c) by default for better performance.
+The fast interpreter uses a more efficient instruction dispatch mechanism.
+To use the classic interpreter instead (smaller code size, easier debugging), 
+replace wasm_interp_fast.c with wasm_interp_classic.c in the srcs below.
 """
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
