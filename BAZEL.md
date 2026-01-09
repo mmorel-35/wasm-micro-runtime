@@ -84,7 +84,13 @@ To customize the build, you can modify the copts in the respective BUILD.bazel f
 
 The default build does **not** include JIT support to keep dependencies minimal. JIT support requires LLVM, which is a large dependency.
 
-To enable JIT support, add LLVM from the Bazel Central Registry (BCR) to your project's `MODULE.bazel`:
+WAMR provides two build variants:
+- `//:vmlib` - Default (Interpreter + AOT, no JIT)
+- `//:vmlib_jit` - JIT-enabled (requires LLVM)
+
+To enable JIT support:
+
+**Step 1**: Add LLVM from the Bazel Central Registry (BCR) to your project's `MODULE.bazel`:
 
 ```python
 # In your MODULE.bazel
@@ -92,6 +98,18 @@ bazel_dep(name = "wamr", version = "2.4.3")
 
 # Add LLVM from Bazel Central Registry
 bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4")
+```
+
+**Step 2**: Use the JIT-enabled target in your BUILD file:
+
+```python
+cc_binary(
+    name = "my_app",
+    srcs = ["main.c"],
+    deps = [
+        "@wamr//:vmlib_jit",  # Use vmlib_jit instead of vmlib
+    ],
+)
 ```
 
 LLVM is available in BCR at version 17.0.3.bcr.4. Check the [Bazel Central Registry](https://registry.bazel.build/modules/llvm-project) for the latest available versions.
@@ -112,7 +130,21 @@ git_override(
 )
 ```
 
-**Note**: JIT configuration with LLVM requires additional build setup. For most use cases, the interpreter or AOT modes (which don't require LLVM) are recommended.
+**Conditional JIT Support**
+
+For projects that want to optionally enable JIT (like proxy-wasm-cpp-host):
+
+```python
+cc_library(
+    name = "wasm_runtime",
+    deps = select({
+        "//bazel:use_jit": ["@wamr//:vmlib_jit"],
+        "//conditions:default": ["@wamr//:vmlib"],
+    }),
+)
+```
+
+**Note**: For most use cases, the interpreter or AOT modes (which don't require LLVM) are recommended.
 
 ## Build Structure
 

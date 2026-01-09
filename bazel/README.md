@@ -4,14 +4,59 @@ This directory contains Bazel-specific configuration files for WAMR.
 
 ## Files
 
-- `extensions.bzl`: Module extensions for optional WAMR features (e.g., JIT with LLVM)
+- `extensions.bzl`: Build configuration helpers for optional WAMR features (e.g., JIT with LLVM)
 - `BUILD.bazel`: Build configuration for this directory
 
 ## LLVM/JIT Support
 
 The WAMR Bazel build does not include LLVM by default to keep dependencies minimal. Most use cases (interpreter and AOT) do not require LLVM.
 
-If you need JIT support, add LLVM from the Bazel Central Registry (BCR):
+### Using JIT in Your Project
+
+WAMR provides two build targets:
+- `//:vmlib` - Default build (Interpreter + AOT, no JIT)
+- `//:vmlib_jit` - JIT-enabled build (requires LLVM)
+
+To use JIT support in your project:
+
+```python
+# In your MODULE.bazel
+bazel_dep(name = "wamr", version = "2.4.3")
+
+# Add LLVM from Bazel Central Registry
+bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4")
+```
+
+Then in your BUILD file:
+
+```python
+cc_binary(
+    name = "my_wasm_app",
+    srcs = ["main.c"],
+    deps = [
+        "@wamr//:vmlib_jit",  # Use vmlib_jit instead of vmlib
+    ],
+)
+```
+
+### For proxy-wasm-cpp-host Integration
+
+If you're integrating WAMR with proxy-wasm-cpp-host or similar projects:
+
+1. Add LLVM dependency in your MODULE.bazel (as shown above)
+2. Use conditional deps in your BUILD file:
+
+```python
+cc_library(
+    name = "wamr_engine",
+    deps = select({
+        "//bazel:engine_wamr_jit": ["@wamr//:vmlib_jit"],
+        "//conditions:default": ["@wamr//:vmlib"],
+    }),
+)
+```
+
+This allows you to switch between JIT and non-JIT builds based on your build configuration.
 
 ### Recommended: Using Bazel Central Registry
 
