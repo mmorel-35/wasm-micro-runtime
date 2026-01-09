@@ -1,0 +1,11 @@
+"""
+BUILD.bazel for bazel directory
+
+This directory contains Bazel configuration files and extensions.
+"""
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "extensions.bzl",
+])

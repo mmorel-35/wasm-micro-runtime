@@ -4,6 +4,24 @@ MODULE.bazel - Bazel module definition for WebAssembly Micro Runtime (WAMR)
 This file defines the WAMR module and its dependencies using Bazel's modern
 module system (bzlmod). It provides build support for the WAMR runtime library
 without requiring foreign_cc rules.
+
+For JIT support (WAMR_BUILD_JIT=1), LLVM is required. To enable JIT:
+1. Add LLVM dependency in your project's MODULE.bazel
+2. Use the wamr_jit extension to configure LLVM support
+
+Example for JIT support:
+    # In your MODULE.bazel
+    bazel_dep(name = "wamr", version = "2.4.3")
+    
+    # Add LLVM via git_override or archive_override
+    git_override(
+        module_name = "llvm-project",
+        remote = "https://github.com/llvm/llvm-project.git",
+        commit = "<llvm-18-or-19-commit>",
+    )
+    
+    wamr_jit = use_extension("@wamr//bazel:extensions.bzl", "wamr_jit")
+    use_repo(wamr_jit, "llvm")
 """
 
 module(
@@ -18,3 +36,8 @@ bazel_dep(name = "rules_cc", version = "0.0.9")
 
 # Optional: Bazel skylib for utility functions
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
+
+# LLVM is required for JIT support but not included by default
+# to keep the module lightweight for interpreter and AOT-only use cases.
+# Users who need JIT support should add LLVM dependency in their own MODULE.bazel
+# See documentation above for examples.

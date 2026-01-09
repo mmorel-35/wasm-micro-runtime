@@ -80,6 +80,37 @@ The Bazel build includes sensible defaults:
 
 To customize the build, you can modify the copts in the respective BUILD.bazel files or create custom build configurations.
 
+### JIT Support (Advanced)
+
+The default build does **not** include JIT support to keep dependencies minimal. JIT support requires LLVM, which is a large dependency.
+
+To enable JIT support, you need to:
+
+1. Add LLVM dependency in your project's `MODULE.bazel`:
+
+```python
+# In your MODULE.bazel
+bazel_dep(name = "wamr", version = "2.4.3")
+
+# Option 1: Use git_override for LLVM (recommended for development)
+git_override(
+    module_name = "llvm-project",
+    remote = "https://github.com/llvm/llvm-project.git",
+    commit = "llvmorg-18.1.8",  # or another LLVM 18.x/19.x version
+)
+
+# Option 2: Use archive_override for LLVM (recommended for production)
+archive_override(
+    module_name = "llvm-project",
+    urls = ["https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-18.1.8.tar.gz"],
+    strip_prefix = "llvm-project-llvmorg-18.1.8",
+)
+```
+
+2. Configure WAMR to use LLVM in your BUILD files (see LLVM documentation for setting up LLVM with Bazel)
+
+**Note**: LLVM support in Bazel is complex and may require additional configuration. For simpler use cases, consider using the interpreter or AOT modes which don't require LLVM.
+
 ## Build Structure
 
 Individual BUILD.bazel files in subdirectories allow you to:
@@ -122,9 +153,10 @@ Each component is built as a separate `cc_library` target, allowing for modular 
 ## Differences from CMake Build
 
 The Bazel build is designed to be as close as possible to the CMake build but with some differences:
-- No JIT support in the default configuration (requires LLVM dependencies)
-- No optional features like wasi-nn, debug engine by default
-- Simpler dependency management through Bazel's module system
+- **No JIT support in the default configuration**: JIT requires LLVM which is a large dependency. Users who need JIT must add LLVM dependency manually (see "JIT Support" section above)
+- **No optional features by default**: Features like wasi-nn, debug engine are not included to keep the build minimal
+- **Simpler dependency management**: Uses Bazel's modern module system (bzlmod) instead of CMake's find_package
+- **Modular structure**: Each component is a separate cc_library for better dependency management
 
 ## Troubleshooting
 
