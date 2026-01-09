@@ -132,14 +132,60 @@ cc_library(
         "//core/shared/utils",
         # JIT compilation component would be added here when implemented
         # "//core/iwasm/compilation",
+    ] + [
+        # LLVM core libraries required for JIT
+        "@llvm-project//llvm:ExecutionEngine",
+        "@llvm-project//llvm:MCJIT",
+        "@llvm-project//llvm:OrcJIT",
+        "@llvm-project//llvm:Support",
+        "@llvm-project//llvm:Core",
+        "@llvm-project//llvm:Target",
+        "@llvm-project//llvm:MC",
+        "@llvm-project//llvm:Object",
+        "@llvm-project//llvm:Analysis",
+        "@llvm-project//llvm:Passes",
+        "@llvm-project//llvm:TransformUtils",
+        "@llvm-project//llvm:ScalarOpts",
+        "@llvm-project//llvm:InstCombine",
+        "@llvm-project//llvm:CodeGen",
+        "@llvm-project//llvm:SelectionDAG",
+        "@llvm-project//llvm:AsmPrinter",
+        "@llvm-project//llvm:BitWriter",
+        "@llvm-project//llvm:BitReader",
+        "@llvm-project//llvm:IRReader",
+        "@llvm-project//llvm:Vectorize",
+        "@llvm-project//llvm:IPO",
+        "@llvm-project//llvm:Linker",
+        "@llvm-project//llvm:Instrumentation",
+        "@llvm-project//llvm:JITLink",
     ] + select({
-        # LLVM dependencies when JIT is enabled
-        # Note: Requires llvm-project in your MODULE.bazel
-        "@platforms//os:linux": [
-            # "@llvm-project//llvm:Support",
-            # Add other required LLVM libraries
+        # Architecture-specific LLVM libraries
+        "@platforms//cpu:x86_64": [
+            "@llvm-project//llvm:X86CodeGen",
+            "@llvm-project//llvm:X86AsmParser",
+            "@llvm-project//llvm:X86Disassembler",
         ],
-        "//conditions:default": [],
+        "@platforms//cpu:aarch64": [
+            "@llvm-project//llvm:AArch64CodeGen",
+            "@llvm-project//llvm:AArch64AsmParser",
+            "@llvm-project//llvm:AArch64Disassembler",
+        ],
+        "@platforms//cpu:arm": [
+            "@llvm-project//llvm:ARMCodeGen",
+            "@llvm-project//llvm:ARMAsmParser",
+            "@llvm-project//llvm:ARMDisassembler",
+        ],
+        "@platforms//cpu:riscv64": [
+            "@llvm-project//llvm:RISCVCodeGen",
+            "@llvm-project//llvm:RISCVAsmParser",
+            "@llvm-project//llvm:RISCVDisassembler",
+        ],
+        "//conditions:default": [
+            # Default to x86_64 for unknown architectures
+            "@llvm-project//llvm:X86CodeGen",
+            "@llvm-project//llvm:X86AsmParser",
+            "@llvm-project//llvm:X86Disassembler",
+        ],
     }),
 )
 
