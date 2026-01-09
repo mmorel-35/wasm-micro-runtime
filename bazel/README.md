@@ -9,44 +9,42 @@ This directory contains Bazel-specific configuration files for WAMR.
 
 ## LLVM/JIT Support
 
-The WAMR Bazel build does not include LLVM by default to keep dependencies minimal. Most use cases (interpreter and AOT) do not require LLVM.
+WAMR now includes LLVM as an optional dependency, making JIT support much easier to use!
 
 ### Using JIT in Your Project
 
 WAMR provides two build targets:
-- `//:vmlib` - Default build (Interpreter + AOT, no JIT)
-- `//:vmlib_jit` - JIT-enabled build (requires LLVM)
+- `//:vmlib` - Default build (Interpreter + AOT, no JIT, no LLVM)
+- `//:vmlib_jit` - JIT-enabled build (LLVM automatically included)
 
-To use JIT support in your project:
+**Simple JIT usage:**
 
 ```python
 # In your MODULE.bazel
 bazel_dep(name = "wamr", version = "2.4.3")
 
-# Add LLVM from Bazel Central Registry
-bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4")
-```
-
-Then in your BUILD file:
-
-```python
+# In your BUILD file
 cc_binary(
     name = "my_wasm_app",
     srcs = ["main.c"],
     deps = [
-        "@wamr//:vmlib_jit",  # Use vmlib_jit instead of vmlib
+        "@wamr//:vmlib_jit",  # LLVM is automatically available!
     ],
 )
 ```
 
+LLVM 17.0.3.bcr.4 from Bazel Central Registry is automatically included as an optional dependency. You don't need to add it manually to your MODULE.bazel!
+
 ### For proxy-wasm-cpp-host Integration
 
-If you're integrating WAMR with proxy-wasm-cpp-host or similar projects:
-
-1. Add LLVM dependency in your MODULE.bazel (as shown above)
-2. Use conditional deps in your BUILD file:
+If you're integrating WAMR with proxy-wasm-cpp-host or similar projects, it's now even simpler:
 
 ```python
+# In your MODULE.bazel
+bazel_dep(name = "wamr", version = "2.4.3")
+# No need to add llvm-project separately!
+
+# In your BUILD file - use conditional deps
 cc_library(
     name = "wamr_engine",
     deps = select({
@@ -58,26 +56,15 @@ cc_library(
 
 This allows you to switch between JIT and non-JIT builds based on your build configuration.
 
-### Recommended: Using Bazel Central Registry
+### Using a Different LLVM Version (Optional)
+
+WAMR includes LLVM 17.0.3.bcr.4 by default. If you need a different version:
 
 ```python
 # In your MODULE.bazel
 bazel_dep(name = "wamr", version = "2.4.3")
 
-# Add LLVM from Bazel Central Registry
-bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4")
-```
-
-LLVM is available in BCR with Bazel build support already configured. Check the [Bazel Central Registry](https://registry.bazel.build/modules/llvm-project) for available versions.
-
-### Alternative: Using git_override for newer versions
-
-If you need LLVM 18.x or 19.x (not yet in BCR):
-
-```python
-# In your MODULE.bazel
-bazel_dep(name = "wamr", version = "2.4.3")
-
+# Override with a newer LLVM version
 git_override(
     module_name = "llvm-project",
     remote = "https://github.com/llvm/llvm-project.git",
@@ -87,7 +74,7 @@ git_override(
 
 ### Supported LLVM Versions
 
-- **BCR**: LLVM 17.0.3.bcr.4 (ready to use)
+- **Included by default**: LLVM 17.0.3.bcr.4 from BCR (ready to use)
 - **Compatible**: LLVM 17.x, 18.x, 19.x
 - **WAMR default (CMake)**: LLVM 18.x (release/18.x branch)
 

@@ -86,37 +86,31 @@ The default build does **not** include JIT support to keep dependencies minimal.
 
 WAMR provides two build variants:
 - `//:vmlib` - Default (Interpreter + AOT, no JIT)
-- `//:vmlib_jit` - JIT-enabled (requires LLVM)
+- `//:vmlib_jit` - JIT-enabled (includes LLVM automatically)
 
-To enable JIT support:
+**Using JIT is now simple!** LLVM is included as an optional dependency in WAMR's MODULE.bazel.
 
-**Step 1**: Add LLVM from the Bazel Central Registry (BCR) to your project's `MODULE.bazel`:
+Just use the JIT-enabled target in your BUILD file:
 
 ```python
 # In your MODULE.bazel
 bazel_dep(name = "wamr", version = "2.4.3")
 
-# Add LLVM from Bazel Central Registry
-bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4")
-```
-
-**Step 2**: Use the JIT-enabled target in your BUILD file:
-
-```python
+# In your BUILD file
 cc_binary(
     name = "my_app",
     srcs = ["main.c"],
     deps = [
-        "@wamr//:vmlib_jit",  # Use vmlib_jit instead of vmlib
+        "@wamr//:vmlib_jit",  # LLVM is automatically available
     ],
 )
 ```
 
-LLVM is available in BCR at version 17.0.3.bcr.4. Check the [Bazel Central Registry](https://registry.bazel.build/modules/llvm-project) for the latest available versions.
+**That's it!** LLVM 17.0.3.bcr.4 from Bazel Central Registry is automatically included when you depend on WAMR.
 
-**Alternative: Use a specific LLVM version**
+**Using a different LLVM version (optional)**
 
-If you need a different LLVM version (e.g., LLVM 18.x or 19.x), you can use git_override:
+If you need a different LLVM version (e.g., LLVM 18.x or 19.x), you can override it:
 
 ```python
 # In your MODULE.bazel
