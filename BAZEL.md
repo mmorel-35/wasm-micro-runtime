@@ -84,32 +84,35 @@ To customize the build, you can modify the copts in the respective BUILD.bazel f
 
 The default build does **not** include JIT support to keep dependencies minimal. JIT support requires LLVM, which is a large dependency.
 
-To enable JIT support, you need to:
-
-1. Add LLVM dependency in your project's `MODULE.bazel`:
+To enable JIT support, add LLVM from the Bazel Central Registry (BCR) to your project's `MODULE.bazel`:
 
 ```python
 # In your MODULE.bazel
 bazel_dep(name = "wamr", version = "2.4.3")
 
-# Option 1: Use git_override for LLVM (recommended for development)
+# Add LLVM from Bazel Central Registry
+bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4")
+```
+
+LLVM is available in BCR at version 17.0.3.bcr.4. Check the [Bazel Central Registry](https://registry.bazel.build/modules/llvm-project) for the latest available versions.
+
+**Alternative: Use a specific LLVM version**
+
+If you need a different LLVM version (e.g., LLVM 18.x or 19.x), you can use git_override:
+
+```python
+# In your MODULE.bazel
+bazel_dep(name = "wamr", version = "2.4.3")
+
+# Override with specific LLVM version
 git_override(
     module_name = "llvm-project",
     remote = "https://github.com/llvm/llvm-project.git",
-    commit = "llvmorg-18.1.8",  # or another LLVM 18.x/19.x version
-)
-
-# Option 2: Use archive_override for LLVM (recommended for production)
-archive_override(
-    module_name = "llvm-project",
-    urls = ["https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-18.1.8.tar.gz"],
-    strip_prefix = "llvm-project-llvmorg-18.1.8",
+    commit = "llvmorg-18.1.8",
 )
 ```
 
-2. Configure WAMR to use LLVM in your BUILD files (see LLVM documentation for setting up LLVM with Bazel)
-
-**Note**: LLVM support in Bazel is complex and may require additional configuration. For simpler use cases, consider using the interpreter or AOT modes which don't require LLVM.
+**Note**: JIT configuration with LLVM requires additional build setup. For most use cases, the interpreter or AOT modes (which don't require LLVM) are recommended.
 
 ## Build Structure
 
