@@ -53,19 +53,19 @@ cc_binary(
 )
 ```
 
-See the `examples/bazel-test` directory for a complete example.
+See the `examples/simple-bazel-example` directory for a complete example.
 
 ## Running the Example
 
 ```bash
 # Build the example
-bazel build //examples/bazel-test:wamr_example
+bazel build //examples/simple-bazel-example:wamr_example
 
 # Run the example
-bazel run //examples/bazel-test:wamr_example
+bazel run //examples/simple-bazel-example:wamr_example
 
 # Run the test
-bazel test //examples/bazel-test:wamr_test
+bazel test //examples/simple-bazel-example:wamr_test
 ```
 
 ## Configuration Options
