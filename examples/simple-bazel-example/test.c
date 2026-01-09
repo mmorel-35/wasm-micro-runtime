@@ -12,19 +12,20 @@
 #include <assert.h>
 #include "wasm_export.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     /* Test: Initialize the WASM runtime */
     int result = wasm_runtime_init();
     assert(result == 1);
-    
+
     printf("Test passed: WAMR runtime initialized\n");
 
     /* Test: Clean up */
     wasm_runtime_destroy();
-    
+
     printf("Test passed: WAMR runtime destroyed\n");
     printf("All tests passed!\n");
-    
+
     return 0;
 }

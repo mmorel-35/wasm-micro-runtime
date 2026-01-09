@@ -9,9 +9,9 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "libc_builtin",
+    name = "libc-builtin",
     srcs = glob(["*.c"]),
-    hdrs = glob(["*.h"]),
+    hdrs = glob(["*.h"], allow_empty = True),
     copts = [
         "-std=gnu99",
         "-ffunction-sections",

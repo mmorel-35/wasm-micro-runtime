@@ -14,7 +14,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "iwasm_interp",
+    name = "interpreter",
     srcs = [
         "wasm_loader.c",
         "wasm_runtime.c",

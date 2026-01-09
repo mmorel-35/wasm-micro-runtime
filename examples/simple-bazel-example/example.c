@@ -12,7 +12,8 @@
 #include <stdlib.h>
 #include "wasm_export.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     /* Initialize the WASM runtime */
     if (!wasm_runtime_init()) {
@@ -24,8 +25,8 @@ int main(int argc, char *argv[])
 
     /* Clean up */
     wasm_runtime_destroy();
-    
+
     printf("WAMR runtime destroyed successfully\n");
-    
+
     return 0;
 }

@@ -9,16 +9,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "mem_alloc",
+    name = "mem-alloc",
     srcs = glob([
         "*.c",
         "ems/*.c",
-        "tlsf/*.c",
     ]),
     hdrs = glob([
         "*.h",
         "ems/*.h",
-        "tlsf/*.h",
     ]),
     copts = [
         "-std=gnu99",
