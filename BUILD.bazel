@@ -217,7 +217,13 @@ cc_library(
         "-fvisibility=hidden",
         "-DBH_MALLOC=wasm_runtime_malloc",
         "-DBH_FREE=wasm_runtime_free",
-    ],
+    ] + select({
+        ":x86_64": ["-DBUILD_TARGET_X86_64"],
+        ":aarch64": ["-DBUILD_TARGET_AARCH64"],
+        ":arm": ["-DBUILD_TARGET_ARM"],
+        ":riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
+        "//conditions:default": ["-DBUILD_TARGET_X86_64"],
+    }),
     includes = [
         "core/iwasm/common",
     ],
@@ -272,7 +278,13 @@ cc_library(
         "-fdata-sections",
         "-fvisibility=hidden",
         "-DWASM_ENABLE_AOT=1",
-    ],
+    ] + select({
+        ":x86_64": ["-DBUILD_TARGET_X86_64"],
+        ":aarch64": ["-DBUILD_TARGET_AARCH64"],
+        ":arm": ["-DBUILD_TARGET_ARM"],
+        ":riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
+        "//conditions:default": ["-DBUILD_TARGET_X86_64"],
+    }),
     includes = [
         "core/iwasm/aot",
     ],
@@ -340,7 +352,13 @@ cc_library(
         "-DWASM_ENABLE_FAST_INTERP=1",
         "-DWASM_ENABLE_SIMD=1",
         "-DWASM_ENABLE_REF_TYPES=1",
-    ],
+    ] + select({
+        ":x86_64": ["-DBUILD_TARGET_X86_64"],
+        ":aarch64": ["-DBUILD_TARGET_AARCH64"],
+        ":arm": ["-DBUILD_TARGET_ARM"],
+        ":riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
+        "//conditions:default": ["-DBUILD_TARGET_X86_64"],
+    }),
     includes = [
         "core/iwasm/include",
     ],
