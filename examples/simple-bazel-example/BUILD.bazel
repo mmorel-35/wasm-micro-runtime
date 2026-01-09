@@ -1,0 +1,25 @@
+"""
+Example BUILD file showing how to use WAMR vmlib library in your Bazel project.
+
+This demonstrates how to link against the WAMR runtime library.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
+
+# Example binary that uses WAMR
+cc_binary(
+    name = "wamr_example",
+    srcs = ["example.c"],
+    deps = [
+        "//:vmlib",
+    ],
+)
+
+# Example test using WAMR
+cc_test(
+    name = "wamr_test",
+    srcs = ["test.c"],
+    deps = [
+        "//:vmlib",
+    ],
+)

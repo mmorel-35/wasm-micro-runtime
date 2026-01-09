@@ -1,0 +1,33 @@
+"""
+BUILD.bazel - Memory allocator library for WAMR
+
+This library provides memory allocation functionality for the WAMR runtime.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "mem-alloc",
+    srcs = glob([
+        "*.c",
+        "ems/*.c",
+    ]),
+    hdrs = glob([
+        "*.h",
+        "ems/*.h",
+    ]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DBH_MALLOC=wasm_runtime_malloc",
+        "-DBH_FREE=wasm_runtime_free",
+    ],
+    includes = ["."],
+    deps = [
+        "//core/shared/utils",  # Required for bh_*.h headers
+    ],
+)

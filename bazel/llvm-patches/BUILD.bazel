@@ -1,0 +1,4 @@
+# BUILD file for LLVM patches directory
+# Exports patches from BCR for use with archive_override
+
+exports_files(glob(["*.patch"]))

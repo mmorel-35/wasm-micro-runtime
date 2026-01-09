@@ -1,0 +1,194 @@
+"""
+BUILD.bazel - Main build file for WebAssembly Micro Runtime (WAMR)
+
+This file defines the main vmlib target which combines all WAMR components.
+For JIT support, use the vmlib_jit target which requires LLVM.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+# Configuration header library
+# Provides config.h to all WAMR components
+cc_library(
+    name = "config",
+    hdrs = ["core/config.h"],
+    includes = ["core"],
+    visibility = ["//visibility:public"],
+)
+
+# IWASM API headers
+# Public API headers for WAMR runtime
+cc_library(
+    name = "iwasm_api",
+    hdrs = glob(["core/iwasm/include/*.h"]),
+    includes = ["core/iwasm/include"],
+    visibility = ["//visibility:public"],
+)
+
+# Main WAMR runtime library (vmlib/libiwasm)
+# Default configuration: Interpreter + AOT (no JIT)
+cc_library(
+    name = "vmlib",
+    hdrs = glob(["core/iwasm/include/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-Wall",
+        "-Wextra",
+        "-Wformat",
+        "-Wformat-security",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_INTERP=1",
+        "-DWASM_ENABLE_AOT=1",
+        "-DWASM_ENABLE_LIBC_BUILTIN=1",
+        "-DWASM_ENABLE_LIBC_WASI=1",
+        "-DWASM_ENABLE_FAST_INTERP=1",
+        "-DWASM_ENABLE_SIMD=1",
+        "-DWASM_ENABLE_REF_TYPES=1",
+    ] + select({
+        "@platforms//cpu:x86_64": ["-DBUILD_TARGET_X86_64"],
+        "@platforms//cpu:aarch64": ["-DBUILD_TARGET_AARCH64"],
+        "@platforms//cpu:arm": ["-DBUILD_TARGET_ARM"],
+        "@platforms//cpu:riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
+        "//conditions:default": ["-DBUILD_TARGET_X86_64"],
+    }),
+    includes = ["core/iwasm/include"],
+    linkopts = select({
+        "@platforms//os:linux": [
+            "-lm",
+            "-ldl",
+            "-lpthread",
+        ],
+        "@platforms//os:macos": [
+            "-lm",
+            "-lpthread",
+        ],
+        "@platforms//os:windows": [
+            "-lws2_32",
+            "-lntdll",
+        ],
+        "//conditions:default": [
+            "-lm",
+            "-ldl",
+            "-lpthread",
+        ],
+    }),
+    deps = [
+        "//core/iwasm/aot",
+        "//core/iwasm/common",
+        "//core/iwasm/interpreter",
+        "//core/iwasm/libraries/libc-builtin",
+        "//core/iwasm/libraries/libc-wasi",
+        "//core/shared/mem-alloc",
+        "//core/shared/platform",
+        "//core/shared/utils",
+    ],
+)
+
+# WAMR runtime library with JIT support
+# Requires LLVM: automatically included from BCR in MODULE.bazel
+cc_library(
+    name = "vmlib_jit",
+    hdrs = glob(["core/iwasm/include/*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_INTERP=1",
+        "-DWASM_ENABLE_AOT=1",
+        "-DWASM_ENABLE_JIT=1",
+        "-DWASM_ENABLE_LAZY_JIT=1",
+        "-DWASM_ENABLE_LIBC_BUILTIN=1",
+        "-DWASM_ENABLE_LIBC_WASI=1",
+        "-DWASM_ENABLE_FAST_INTERP=0",  # JIT mode uses classic interpreter
+        "-DWASM_ENABLE_SIMD=1",
+        "-DWASM_ENABLE_REF_TYPES=1",
+    ] + select({
+        "@platforms//cpu:x86_64": ["-DBUILD_TARGET_X86_64"],
+        "@platforms//cpu:aarch64": ["-DBUILD_TARGET_AARCH64"],
+        "@platforms//cpu:arm": ["-DBUILD_TARGET_ARM"],
+        "@platforms//cpu:riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
+        "//conditions:default": ["-DBUILD_TARGET_X86_64"],
+    }),
+    includes = ["core/iwasm/include"],
+    linkopts = select({
+        "@platforms//os:linux": [
+            "-lm",
+            "-ldl",
+            "-lpthread",
+        ],
+        "@platforms//os:macos": [
+            "-lm",
+            "-lpthread",
+        ],
+        "@platforms//os:windows": [
+            "-lws2_32",
+            "-lntdll",
+        ],
+        "//conditions:default": [
+            "-lm",
+            "-ldl",
+            "-lpthread",
+        ],
+    }),
+    deps = [
+        "//core/iwasm/aot",
+        "//core/iwasm/common",
+        "//core/iwasm/interpreter",
+        "//core/iwasm/libraries/libc-builtin",
+        "//core/iwasm/libraries/libc-wasi",
+        "//core/shared/mem-alloc",
+        "//core/shared/platform",
+        "//core/shared/utils",
+        # JIT compilation component would be added here when implemented
+        # "//core/iwasm/compilation",
+    ] + [
+        # LLVM core libraries required for JIT (minimal set that exists in LLVM 19)
+        "@llvm-project//llvm:Support",
+        "@llvm-project//llvm:Core",
+        "@llvm-project//llvm:OrcJIT",
+    ] + select({
+        # Architecture-specific LLVM libraries
+        "@platforms//cpu:x86_64": [
+            "@llvm-project//llvm:X86CodeGen",
+            "@llvm-project//llvm:X86AsmParser",
+            "@llvm-project//llvm:X86Disassembler",
+        ],
+        "@platforms//cpu:aarch64": [
+            "@llvm-project//llvm:AArch64CodeGen",
+            "@llvm-project//llvm:AArch64AsmParser",
+            "@llvm-project//llvm:AArch64Disassembler",
+        ],
+        "@platforms//cpu:arm": [
+            "@llvm-project//llvm:ARMCodeGen",
+            "@llvm-project//llvm:ARMAsmParser",
+            "@llvm-project//llvm:ARMDisassembler",
+        ],
+        "@platforms//cpu:riscv64": [
+            "@llvm-project//llvm:RISCVCodeGen",
+            "@llvm-project//llvm:RISCVAsmParser",
+            "@llvm-project//llvm:RISCVDisassembler",
+        ],
+        "//conditions:default": [
+            "@llvm-project//llvm:X86CodeGen",
+            "@llvm-project//llvm:X86AsmParser",
+            "@llvm-project//llvm:X86Disassembler",
+        ],
+    }),
+    visibility = ["//visibility:public"],
+)
+# Alias for compatibility
+alias(
+    name = "iwasm",
+    actual = ":vmlib",
+)
+
+# Alias for JIT-enabled build
+alias(
+    name = "iwasm_jit",
+    actual = ":vmlib_jit",
+)
