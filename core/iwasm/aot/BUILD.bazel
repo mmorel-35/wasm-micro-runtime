@@ -1,0 +1,42 @@
+"""
+BUILD.bazel - AOT runtime library for WAMR
+
+This library provides Ahead-of-Time compilation runtime with architecture-specific relocations.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "iwasm_aot",
+    srcs = [
+        "aot_intrinsic.c",
+        "aot_loader.c",
+        "aot_runtime.c",
+    ] + select({
+        "@platforms//cpu:x86_64": ["arch/aot_reloc_x86_64.c"],
+        "@platforms//cpu:aarch64": ["arch/aot_reloc_aarch64.c"],
+        "@platforms//cpu:arm": ["arch/aot_reloc_arm.c"],
+        "@platforms//cpu:riscv64": ["arch/aot_reloc_riscv.c"],
+        "//conditions:default": ["arch/aot_reloc_x86_64.c"],
+    }),
+    hdrs = glob(["*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_AOT=1",
+    ] + select({
+        "@platforms//cpu:x86_64": ["-DBUILD_TARGET_X86_64"],
+        "@platforms//cpu:aarch64": ["-DBUILD_TARGET_AARCH64"],
+        "@platforms//cpu:arm": ["-DBUILD_TARGET_ARM"],
+        "@platforms//cpu:riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
+        "//conditions:default": ["-DBUILD_TARGET_X86_64"],
+    }),
+    includes = ["."],
+    deps = [
+        "//core/iwasm/common",
+    ],
+)

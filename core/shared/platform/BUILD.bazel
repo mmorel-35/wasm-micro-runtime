@@ -1,0 +1,72 @@
+"""
+BUILD.bazel - Platform abstraction layer for WAMR
+
+This library provides platform-specific implementations for different operating systems.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "platform",
+    srcs = glob([
+        "common/math/*.c",
+        "common/libc-util/*.c",
+    ]) + select({
+        "@platforms//os:linux": glob([
+            "linux/*.c",
+            "common/posix/*.c",
+        ]),
+        "@platforms//os:macos": glob([
+            "darwin/*.c",
+            "common/posix/*.c",
+        ]),
+        "@platforms//os:windows": glob([
+            "windows/*.c",
+        ]),
+        "//conditions:default": glob([
+            "linux/*.c",
+            "common/posix/*.c",
+        ]),
+    }),
+    hdrs = glob([
+        "include/*.h",
+        "common/**/*.h",
+    ]) + select({
+        "@platforms//os:linux": glob(["linux/*.h"]),
+        "@platforms//os:macos": glob(["darwin/*.h"]),
+        "@platforms//os:windows": glob(["windows/*.h"]),
+        "//conditions:default": [],
+    }),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+    ] + select({
+        "@platforms//os:linux": ["-DBH_PLATFORM_LINUX"],
+        "@platforms//os:macos": ["-DBH_PLATFORM_DARWIN"],
+        "@platforms//os:windows": ["-DBH_PLATFORM_WINDOWS"],
+        "//conditions:default": ["-DBH_PLATFORM_LINUX"],
+    }),
+    includes = [
+        "include",
+        "common/math",
+        "common/libc-util",
+    ] + select({
+        "@platforms//os:linux": [
+            "linux",
+            "common/posix",
+        ],
+        "@platforms//os:macos": [
+            "darwin",
+            "common/posix",
+        ],
+        "@platforms//os:windows": ["windows"],
+        "//conditions:default": [
+            "linux",
+            "common/posix",
+        ],
+    }),
+)

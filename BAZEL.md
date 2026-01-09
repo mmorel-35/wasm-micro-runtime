@@ -78,13 +78,33 @@ The Bazel build includes sensible defaults:
 - SIMD support enabled (WASM_ENABLE_SIMD=1)
 - Reference types enabled (WASM_ENABLE_REF_TYPES=1)
 
-To customize the build, you can modify the copts in BUILD.bazel or create custom build configurations.
+To customize the build, you can modify the copts in the respective BUILD.bazel files or create custom build configurations.
+
+## Build Structure
+
+Individual BUILD.bazel files in subdirectories allow you to:
+- Build specific components independently (e.g., `bazel build //core/iwasm/aot`)
+- Better understand dependencies between components
+- Modify component-specific build settings without affecting others
+- Follow Bazel best practices for modular builds
 
 ## Bazel Build Files
 
+The Bazel build is organized into multiple BUILD.bazel files for better maintainability:
+
 - `MODULE.bazel`: Defines the WAMR module and its dependencies
-- `BUILD.bazel`: Defines all build targets for the WAMR runtime
+- `BUILD.bazel`: Main build file defining the vmlib target
+- `core/shared/mem-alloc/BUILD.bazel`: Memory allocator library
+- `core/shared/utils/BUILD.bazel`: Shared utility functions
+- `core/shared/platform/BUILD.bazel`: Platform abstraction layer
+- `core/iwasm/common/BUILD.bazel`: Core WASM runtime
+- `core/iwasm/interpreter/BUILD.bazel`: Fast interpreter
+- `core/iwasm/aot/BUILD.bazel`: AOT runtime
+- `core/iwasm/libraries/libc-builtin/BUILD.bazel`: Built-in libc
+- `core/iwasm/libraries/libc-wasi/BUILD.bazel`: WASI libc
 - `.bazelrc`: Common build settings and configurations
+
+Each component is built as a separate `cc_library` target, allowing for modular builds and dependencies.
 
 ## Supported Platforms and Architectures
 

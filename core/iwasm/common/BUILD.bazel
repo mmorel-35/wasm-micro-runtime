@@ -1,0 +1,43 @@
+"""
+BUILD.bazel - IWASM common library for WAMR
+
+This library provides core WASM runtime functionality with architecture-specific native invocation.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "iwasm_common",
+    srcs = glob(
+        ["*.c"],
+        exclude = ["wasm_application.c"],
+    ) + select({
+        "@platforms//cpu:x86_64": ["arch/invokeNative_em64.s"],
+        "@platforms//cpu:aarch64": ["arch/invokeNative_aarch64.s"],
+        "@platforms//cpu:arm": ["arch/invokeNative_arm.s"],
+        "@platforms//cpu:riscv64": ["arch/invokeNative_riscv.S"],
+        "//conditions:default": ["arch/invokeNative_general.c"],
+    }),
+    hdrs = glob(["*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DBH_MALLOC=wasm_runtime_malloc",
+        "-DBH_FREE=wasm_runtime_free",
+    ] + select({
+        "@platforms//cpu:x86_64": ["-DBUILD_TARGET_X86_64"],
+        "@platforms//cpu:aarch64": ["-DBUILD_TARGET_AARCH64"],
+        "@platforms//cpu:arm": ["-DBUILD_TARGET_ARM"],
+        "@platforms//cpu:riscv64": ["-DBUILD_TARGET_RISCV64_LP64D"],
+        "//conditions:default": ["-DBUILD_TARGET_X86_64"],
+    }),
+    includes = ["."],
+    deps = [
+        "//core/shared/mem-alloc",
+        "//core/shared/platform",
+    ],
+)

@@ -1,0 +1,23 @@
+"""
+BUILD.bazel - Built-in libc library for WAMR
+
+This library provides a minimal subset of libc functionality for embedded environments.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "libc_builtin",
+    srcs = glob(["*.c"]),
+    hdrs = glob(["*.h"]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+        "-DWASM_ENABLE_LIBC_BUILTIN=1",
+    ],
+    includes = ["."],
+)

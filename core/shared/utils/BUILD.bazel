@@ -1,0 +1,31 @@
+"""
+BUILD.bazel - Shared utilities for WAMR
+
+This library provides common utility functions used across WAMR components.
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "shared_utils",
+    srcs = glob([
+        "*.c",
+        "uncommon/*.c",
+    ]),
+    hdrs = glob([
+        "*.h",
+        "uncommon/*.h",
+    ]),
+    copts = [
+        "-std=gnu99",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fvisibility=hidden",
+    ],
+    includes = [
+        ".",
+        "uncommon",
+    ],
+)
