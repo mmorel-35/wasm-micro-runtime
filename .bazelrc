@@ -9,22 +9,27 @@ build --enable_platform_specific_config
 
 # Linux-specific settings
 build:linux --copt=-fPIC
+build:linux --copt=-Wall
+build:linux --copt=-Wextra
+build:linux --copt=-Wformat
+build:linux --copt=-Wformat-security
 
 # macOS-specific settings  
 build:macos --copt=-fPIC
+build:macos --copt=-Wall
+build:macos --copt=-Wextra
+build:macos --copt=-Wformat
+build:macos --copt=-Wformat-security
 
-# Windows-specific settings
+# Windows-specific settings (MSVC)
 build:windows --conlyopt=/std:c17
+build:windows --copt=/W4  # MSVC warning level 4 (equivalent to -Wall -Wextra)
 
-# Common optimization flags
-build --copt=-ffunction-sections
-build --copt=-fdata-sections
-
-# Security flags
-build --copt=-Wall
-build --copt=-Wextra
-build --copt=-Wformat
-build --copt=-Wformat-security
+# Common optimization flags (not for Windows which uses /flags)
+build:linux --copt=-ffunction-sections
+build:linux --copt=-fdata-sections
+build:macos --copt=-ffunction-sections
+build:macos --copt=-fdata-sections
 
 # Use a static value for PATH for hermetic builds
 build --incompatible_strict_action_env

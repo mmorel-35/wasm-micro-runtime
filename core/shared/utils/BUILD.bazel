@@ -28,4 +28,7 @@ cc_library(
         ".",
         "uncommon",
     ],
+    deps = [
+        "//core/shared/platform",  # Required for bh_platform.h and platform headers
+    ],
 )

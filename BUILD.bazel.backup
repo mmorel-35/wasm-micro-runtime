@@ -71,12 +71,16 @@ cc_library(
 )
 
 # WAMR runtime library with JIT support
-# Requires LLVM 19.1.0: automatically included via git_override in MODULE.bazel
+# Requires LLVM dependency: bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4")
 cc_library(
     name = "vmlib_jit",
     hdrs = glob(["core/iwasm/include/*.h"]),
     copts = [
         "-std=gnu99",
+        "-Wall",
+        "-Wextra",
+        "-Wformat",
+        "-Wformat-security",
         "-ffunction-sections",
         "-fdata-sections",
         "-fvisibility=hidden",
@@ -129,10 +133,31 @@ cc_library(
         # JIT compilation component would be added here when implemented
         # "//core/iwasm/compilation",
     ] + [
-        # LLVM core libraries required for JIT (minimal set that exists in LLVM 19)
+        # LLVM core libraries required for JIT
+        "@llvm-project//llvm:ExecutionEngine",
+        "@llvm-project//llvm:MCJIT",
+        "@llvm-project//llvm:OrcJIT",
         "@llvm-project//llvm:Support",
         "@llvm-project//llvm:Core",
-        "@llvm-project//llvm:OrcJIT",
+        "@llvm-project//llvm:Target",
+        "@llvm-project//llvm:MC",
+        "@llvm-project//llvm:Object",
+        "@llvm-project//llvm:Analysis",
+        "@llvm-project//llvm:Passes",
+        "@llvm-project//llvm:TransformUtils",
+        "@llvm-project//llvm:ScalarOpts",
+        "@llvm-project//llvm:InstCombine",
+        "@llvm-project//llvm:CodeGen",
+        "@llvm-project//llvm:SelectionDAG",
+        "@llvm-project//llvm:AsmPrinter",
+        "@llvm-project//llvm:BitWriter",
+        "@llvm-project//llvm:BitReader",
+        "@llvm-project//llvm:IRReader",
+        "@llvm-project//llvm:Vectorize",
+        "@llvm-project//llvm:IPO",
+        "@llvm-project//llvm:Linker",
+        "@llvm-project//llvm:Instrumentation",
+        "@llvm-project//llvm:JITLink",
     ] + select({
         # Architecture-specific LLVM libraries
         "@platforms//cpu:x86_64": [
@@ -156,13 +181,14 @@ cc_library(
             "@llvm-project//llvm:RISCVDisassembler",
         ],
         "//conditions:default": [
+            # Default to x86_64 for unknown architectures
             "@llvm-project//llvm:X86CodeGen",
             "@llvm-project//llvm:X86AsmParser",
             "@llvm-project//llvm:X86Disassembler",
         ],
     }),
-    visibility = ["//visibility:public"],
 )
+
 # Alias for compatibility
 alias(
     name = "iwasm",

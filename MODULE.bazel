@@ -5,8 +5,8 @@ This file defines the WAMR module and its dependencies using Bazel's modern
 module system (bzlmod). It provides build support for the WAMR runtime library
 without requiring foreign_cc rules.
 
-For JIT support (WAMR_BUILD_JIT=1), LLVM is included as an optional dependency.
-Projects using //:vmlib_jit will automatically get LLVM from Bazel Central Registry.
+For JIT support (WAMR_BUILD_JIT=1), LLVM 19.1.0 is included automatically.
+Projects using //:vmlib_jit will get LLVM via git_override.
 
 For projects using only //:vmlib (default), LLVM is not required.
 
@@ -20,21 +20,20 @@ module(
 )
 
 # Core Bazel rules for C/C++ compilation
-bazel_dep(name = "platforms", version = "0.0.10")
-bazel_dep(name = "rules_cc", version = "0.0.9")
+# Note: These versions are updated to match Bazel's dependency resolution
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.4")
 
 # Optional: Bazel skylib for utility functions
-bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
 
-# LLVM for JIT support - included as an optional dependency
-# This makes it available automatically when using //:vmlib_jit target
-# Projects using //:vmlib (default) don't need LLVM
-bazel_dep(name = "llvm-project", version = "17.0.3.bcr.4", dev_dependency = True)
+# LLVM for JIT support - using git_override to get version 19.1.0
+# This matches the version used in proxy-wasm-cpp-host and has the LLVM
+# targets we need (Support, Core, OrcJIT, etc.)
+bazel_dep(name = "llvm-project", dev_dependency = True)
 
-# Note: LLVM is marked as dev_dependency to keep it optional.
-# If you need a different LLVM version, you can override it in your MODULE.bazel:
-#   git_override(
-#       module_name = "llvm-project",
-#       remote = "https://github.com/llvm/llvm-project.git",
-#       commit = "llvmorg-18.1.8",
-#   )
+git_override(
+    module_name = "llvm-project",
+    remote = "https://github.com/llvm/llvm-project.git",
+    commit = "llvmorg-19.1.0",
+)
